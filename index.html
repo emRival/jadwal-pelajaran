@@ -7,7 +7,7 @@
     <meta
       name="description"
       content="Aplikasi jadwal pelajaran digital untuk IDN Boarding School Pamijahan. Lihat jadwal harian, jadwal guru, dan informasi piket secara real-time. Dikelola secara terpusat oleh admin." />
-      <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#0f172a" />
     <link
       rel="apple-touch-icon"
       sizes="57x57"
@@ -77,116 +77,242 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet" />
     <style>
-              body { font-family: 'Inter', sans-serif; }
-              .tab-button.active {
-                  border-color: #4f46e5;
-                  color: #4f46e5;
-                  background-color: #eef2ff;
-              }
-              .day-button.selected {
-                  background-color: #4f46e5 !important;
-                  color: white !important;
-                  transform: translateY(-2px);
-                  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-              }
-              .day-button.today {
-                  font-weight: 700;
-                  border-color: #6366f1;
-                  color: #4f46e5;
-              }
-              .toast {
-                  visibility: hidden;
-                  min-width: 250px;
-                  margin-left: -125px;
-                  background-color: #333;
-                  color: #fff;
-                  text-align: center;
-                  border-radius: 8px;
-                  padding: 16px;
-                  position: fixed;
-                  z-index: 100;
-                  left: 50%;
-                  bottom: 30px;
-                  opacity: 0;
-                  transition: opacity 0.5s, visibility 0.5s;
-              }
-              .toast.show {
-                  visibility: visible;
-                  opacity: 1;
-              }
-              /* Style for schedule grid */
-              .schedule-grid th, .schedule-grid td {
-                  border: 1px solid #e5e7eb;
-                  padding: 0.75rem;
-                  text-align: center;
-                  min-width: 120px;
-                  transition: background-color: 0.3s;
-              }
-              .schedule-grid th {
-                  background-color: #f9fafb;
-              }
-              .schedule-break-row {
-                  background-color: #f0fdf4; /* green-50 */
-                  color: #15803d; /* green-700 */
-                  font-weight: 600;
-              }
-              /* Style for highlighting current time */
-              .current-timeslot {
-                  background-color: #fef9c3 !important; /* yellow-100 */
-              }
-              .current-timeslot-header {
-                  background-color: #fef9c3 !important;
-                  border-left: 4px solid #f59e0b;
-              }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .tab-button.active {
+        border-color: #4f46e5;
+        color: #4f46e5;
+        background-color: #eef2ff;
+      }
+      .day-button.selected {
+        background-color: #4f46e5 !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+      .day-button.today {
+        font-weight: 700;
+        border-color: #6366f1;
+        color: #4f46e5;
+      }
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        margin-left: -125px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 8px;
+        padding: 16px;
+        position: fixed;
+        z-index: 100;
+        left: 50%;
+        bottom: 30px;
+        opacity: 0;
+        transition: opacity 0.5s, visibility 0.5s;
+      }
+      .toast.show {
+        visibility: visible;
+        opacity: 1;
+      }
+      /* Style for schedule grid */
+      .schedule-grid th,
+      .schedule-grid td {
+        border: 1px solid #e5e7eb;
+        padding: 0.75rem;
+        text-align: center;
+        min-width: 120px;
+        transition: background-color 0.3s;
+      }
+      .schedule-grid th {
+        background-color: #f9fafb;
+      }
+      .schedule-break-row {
+        background-color: #f0fdf4; /* green-50 */
+        color: #15803d; /* green-700 */
+        font-weight: 600;
+      }
+      /* Style for highlighting current time */
+      .current-timeslot {
+        background-color: #fef9c3 !important; /* yellow-100 */
+      }
+      .current-timeslot-header {
+        background-color: #fef9c3 !important;
+        border-left: 4px solid #f59e0b;
+      }
 
-              /* Modal Styles */
-              .modal-backdrop {
-                  position: fixed; inset: 0; background-color: rgba(0,0,0,0.5);
-                  display: flex; align-items: center; justify-content: center; z-index: 50;
-              }
-              .modal-content {
-                  background-color: white; padding: 1.5rem; border-radius: 0.75rem;
-                  max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
-              }
+      /* Modal Styles */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+      }
+      .modal-content {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
 
-              /* Print Styles */
-              #print-output {
-                  display: none;
-              }
-              @page {
-                  size: A4 landscape;
-                  margin: 1cm;
-              }
-              @media print {
-          body { background-color: white; -webkit-print-color-adjust: exact; color-adjust: exact; }
-          #app > header, #app > main > aside, #guest-view, .no-print, #admin-view { display: none !important; }
-          #print-output { display: block !important; }
-          #app { max-width: 100%; padding: 0; margin: 0; }
-          #print-output .schedule-grid { width: 100%; border-collapse: collapse; }
-          #print-output .schedule-grid th, #print-output .schedule-grid td {
-              font-size: 10px; padding: 6px; border: 1px solid #ddd;
-              text-align: left; vertical-align: top;
-          }
-          #print-output .schedule-grid th { background-color: #f3f4f6 !important; font-weight: bold; }
-          #print-output h2 { font-size: 18px; margin-bottom: 10px; text-align: center; font-weight: bold; }
-          #print-output .print-header {
-              text-align: center; margin-bottom: 20px; padding-bottom: 10px;
-              border-bottom: 2px solid #333;
-          }
-          #print-output .print-date { font-size: 11px; color: #666; margin-top: 5px; }
-          #print-output .stats-summary {
-              margin: 15px 0; padding: 10px; background-color: #f9fafb;
-              border: 1px solid #ddd; font-size: 11px;
-          }
-          .keterangan-guru {
-              margin-top: 15px; page-break-inside: avoid; font-size: 10px;
-          }
-          .keterangan-guru h3 { font-size: 12px; font-weight: bold; margin-bottom: 8px; }
-          .keterangan-guru ul {
-              list-style-type: none; padding-left: 0;
-              columns: 2; -webkit-columns: 2; -moz-columns: 2; column-gap: 20px;
-          }
-          .keterangan-guru li { margin-bottom: 4px; }
+      /* Responsive tabs */
+      .tab-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+      }
+
+      .tab-container::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .tab-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+
+      .tab-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      .tab-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      .tab-button {
+        flex-shrink: 0;
+      }
+
+      /* Print Styles */
+      #print-output {
+        display: none;
+      }
+      @page {
+        size: A4 landscape;
+        margin: 1cm;
+      }
+      @media print {
+        body {
+          background-color: white;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        #app > header,
+        #app > main > aside,
+        #guest-view,
+        .no-print,
+        #admin-view {
+          display: none !important;
+        }
+        #print-output {
+          display: block !important;
+        }
+        #app {
+          max-width: 100%;
+          padding: 0;
+          margin: 0;
+        }
+
+        /* Header cetak */
+        #print-output .print-header {
+          text-align: center;
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 3px solid #333;
+        }
+        #print-output h2 {
+          font-size: 20px;
+          margin-bottom: 5px;
+          text-align: center;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+        #print-output h3 {
+          font-size: 14px;
+          margin-top: 5px;
+          font-weight: 600;
+        }
+        #print-output .print-date {
+          font-size: 11px;
+          color: #666;
+          margin-top: 8px;
+        }
+
+        /* Table styling */
+        #print-output .schedule-grid {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
+        #print-output .schedule-grid th,
+        #print-output .schedule-grid td {
+          font-size: 10px;
+          padding: 8px 6px;
+          border: 1px solid #333;
+          text-align: center;
+          vertical-align: middle;
+        }
+        #print-output .schedule-grid th {
+          background-color: #e5e7eb !important;
+          font-weight: bold;
+          text-transform: uppercase;
+          font-size: 9px;
+        }
+        #print-output .schedule-grid td.font-semibold {
+          background-color: #f3f4f6 !important;
+          font-weight: 600;
+        }
+        #print-output .schedule-grid .schedule-break-row {
+          background-color: #f0fdf4 !important;
+          color: #15803d;
+          font-weight: 600;
+        }
+
+        /* Keterangan guru */
+        .keterangan-guru {
+          margin-top: 20px;
+          page-break-inside: avoid;
+          font-size: 10px;
+          border-top: 2px solid #ddd;
+          padding-top: 15px;
+        }
+        .keterangan-guru h3 {
+          font-size: 12px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+        .keterangan-guru ul {
+          list-style-type: none;
+          padding-left: 0;
+          columns: 2;
+          -webkit-columns: 2;
+          -moz-columns: 2;
+          column-gap: 30px;
+        }
+        .keterangan-guru li {
+          margin-bottom: 6px;
+          break-inside: avoid;
+        }
+
+        /* Summary box */
+        #print-output .stats-summary {
+          margin: 15px 0;
+          padding: 12px;
+          background-color: #f9fafb !important;
+          border: 2px solid #cbd5e1;
+          font-size: 11px;
+          line-height: 1.6;
+        }
       }
     </style>
   </head>
@@ -401,7 +527,9 @@
             id="admin-view"
             class="bg-white p-4 sm:p-6 rounded-xl shadow-lg hidden">
             <div class="border-b border-gray-200 mb-4">
-              <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+              <nav
+                class="-mb-px flex space-x-6 tab-container"
+                aria-label="Tabs">
                 <button
                   id="tab-jadwal"
                   class="tab-button active flex items-center space-x-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
@@ -446,10 +574,10 @@
                     fill="currentColor">
                     <path
                       fill-rule="evenodd"
-                      d="M5 2a2 2 0 00-2 2v11a2 2 0 002 2 1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1 2 2 0 002-2V4a2 2 0 00-2-2H5zm9 11a1 1 0 10-2 0v2a1 1 0 102 0v-2z"
+                      d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
                       clip-rule="evenodd" />
                     <path
-                      d="M5 10.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM5 12.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM12 10.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM12 12.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5z" />
+                      d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
                   </svg>
                   <span>Tugas Tambahan</span>
                 </button>
@@ -1778,7 +1906,7 @@
             dataStore.length = 0;
             Array.prototype.push.apply(dataStore, items);
           }
-if (collectionName === "guru" || collectionName === "mapel") {
+          if (collectionName === "guru" || collectionName === "mapel") {
             // Dapatkan datalist form secara dinamis (guru-list-datalist atau mapel-list-datalist)
             const datalist = document.getElementById(
               `${collectionName}-list-datalist`
@@ -1814,7 +1942,6 @@ if (collectionName === "guru" || collectionName === "mapel") {
               compareBDatalist.appendChild(new Option(item.name, item.name));
             });
           } else if (collectionName === "kelas") {
-          
             const checkboxContainer = document.getElementById(
               "schedule-kelas-checkboxes"
             );
@@ -2128,14 +2255,34 @@ if (collectionName === "guru" || collectionName === "mapel") {
         let title = "";
         let tableHTML = "";
 
+        const currentDate = new Date().toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
         if (viewType === "daily") {
-          title = document.getElementById("schedule-title").textContent;
+          const dayName = daysOfWeek[selectedDayIndex];
+          title = `Jadwal Pelajaran Hari ${dayName}`;
           const schedulesForDay = allSchedules.filter(
             (s) => s.day == selectedDayIndex
           );
           const teacherLegend = {};
 
-          let simplifiedTable = `<table class="w-full schedule-grid"><thead><tr><th>Waktu</th>`;
+          // Header
+          let headerHTML = `
+            <div class="print-header">
+                <h2>Jadwal Pelajaran Hari ${dayName}</h2>
+                <h3 style="font-size: 14px; margin-top: 5px;">IDN Boarding School Pamijahan</h3>
+                <p class="print-date">Dicetak pada: ${currentDate}</p>
+            </div>
+        `;
+
+          let simplifiedTable = `<table class="w-full schedule-grid">
+            <thead>
+                <tr>
+                    <th style="width: 12%;">Waktu</th>`;
           allClasses.forEach((c) => (simplifiedTable += `<th>${c.name}</th>`));
           simplifiedTable += "</tr></thead><tbody>";
 
@@ -2143,11 +2290,13 @@ if (collectionName === "guru" || collectionName === "mapel") {
             if (slot.type === "break") {
               simplifiedTable += `<tr><td colspan="${
                 allClasses.length + 1
-              }" class="schedule-break-row">${slot.name} (${
+              }" class="schedule-break-row">${
+                slot.name
+              }<br><span style="font-size: 8px;">(${
                 slot.time
-              })</td></tr>`;
+              })</span></td></tr>`;
             } else {
-              simplifiedTable += `<tr><td class="font-semibold bg-slate-50">JP ${slot.jp}<br><span class="text-xs font-normal">${slot.time}</span></td>`;
+              simplifiedTable += `<tr><td class="font-semibold">JP ${slot.jp}<br><span style="font-size: 8px;">${slot.time}</span></td>`;
 
               let classIndex = 0;
               while (classIndex < allClasses.length) {
@@ -2187,7 +2336,7 @@ if (collectionName === "guru" || collectionName === "mapel") {
                       span++;
                       tempIndex++;
                     }
-                    simplifiedTable += `<td class="${cellClass}" colspan="${span}">${schedule.mapel}</td>`;
+                    simplifiedTable += `<td class="${cellClass}" colspan="${span}"><strong>${schedule.mapel}</strong></td>`;
                     classIndex += span;
                   } else {
                     simplifiedTable += `<td>-</td>`;
@@ -2213,12 +2362,103 @@ if (collectionName === "guru" || collectionName === "mapel") {
             });
             legendHTML += "</ul></div>";
           }
-          tableHTML = simplifiedTable + legendHTML;
+          tableHTML = headerHTML + simplifiedTable + legendHTML;
         } else if (viewType === "teacher") {
-          title = document.getElementById("teacher-schedule-title").textContent;
-          tableHTML = document.getElementById(
-            "teacher-schedule-content"
-          ).innerHTML;
+          const teacherName = document
+            .getElementById("teacher-schedule-title")
+            .textContent.replace("Jadwal Mengajar: ", "");
+          const teacherSchedules = allSchedules.filter(
+            (s) => s.guru === teacherName
+          );
+
+          // Hitung JP
+          const teacherStats = { tasks: [], totalJp: 0 };
+          const teacherMapelJp = {};
+
+          teacherSchedules.forEach((schedule) => {
+            if (!schedule.mapel.toLowerCase().includes("istirahat")) {
+              if (!teacherMapelJp[schedule.mapel]) {
+                teacherMapelJp[schedule.mapel] = 0;
+              }
+              const jpToAdd =
+                jpCalculationMethod === "bySession"
+                  ? 1
+                  : schedule.classes.length;
+              teacherMapelJp[schedule.mapel] += jpToAdd;
+            }
+          });
+
+          for (const mapel in teacherMapelJp) {
+            const jp = teacherMapelJp[mapel];
+            teacherStats.tasks.push(`${mapel} (${jp} JP)`);
+            teacherStats.totalJp += jp;
+          }
+
+          // Tambahkan tugas tambahan
+          const teacher = allTeachers.find((t) => t.name === teacherName);
+          if (teacher && teacher.tasks && teacher.tasks.length > 0) {
+            teacher.tasks.forEach((taskId) => {
+              const task = allTugas.find((t) => t.id === taskId);
+              if (task) {
+                teacherStats.tasks.push(`${task.name} (${task.jp} JP)`);
+                teacherStats.totalJp += task.jp;
+              }
+            });
+          }
+
+          // Header
+          let headerHTML = `
+            <div class="print-header">
+                <h2>Jadwal Mengajar Guru</h2>
+                <h3 style="font-size: 16px; margin-top: 8px;">${teacherName}</h3>
+                <p class="print-date">Dicetak pada: ${currentDate}</p>
+            </div>
+        `;
+
+          // Summary
+          let summaryHTML = `
+            <div class="stats-summary">
+                <strong>Ringkasan Beban Mengajar:</strong><br>
+                • Total JP: ${teacherStats.totalJp} JP<br>
+                • Rincian Tugas:<br>
+                ${teacherStats.tasks
+                  .map((t) => `&nbsp;&nbsp;&nbsp;- ${t}`)
+                  .join("<br>")}
+            </div>
+        `;
+
+          let teacherTable =
+            '<table class="w-full schedule-grid"><thead><tr><th style="width: 12%;">Waktu</th>';
+          for (let i = 1; i <= 5; i++) {
+            teacherTable += `<th>${daysOfWeek[i]}</th>`;
+          }
+          teacherTable += "</tr></thead><tbody>";
+
+          timeSlots.forEach((slot) => {
+            if (slot.type === "break") {
+              teacherTable += `<tr><td colspan="6" class="schedule-break-row">${slot.name}<br><span style="font-size: 8px;">(${slot.time})</span></td></tr>`;
+            } else {
+              teacherTable += `<tr><td class="font-semibold">JP ${slot.jp}<br><span style="font-size: 8px;">${slot.time}</span></td>`;
+              for (let j = 1; j <= 5; j++) {
+                const schedule = allSchedules.find(
+                  (s) => s.jp == slot.jp && s.day == j && s.guru === teacherName
+                );
+                if (schedule) {
+                  const cellContent = `<strong>${
+                    schedule.mapel
+                  }</strong><br><span style="font-size: 8px;">${schedule.classes.join(
+                    ", "
+                  )}</span>`;
+                  teacherTable += `<td style="background-color: #f0f9ff;">${cellContent}</td>`;
+                } else {
+                  teacherTable += `<td>-</td>`;
+                }
+              }
+              teacherTable += "</tr>";
+            }
+          });
+          teacherTable += "</tbody></table>";
+          tableHTML = headerHTML + summaryHTML + teacherTable;
         } else if (viewType === "stats") {
           title = "Laporan Beban Tugas Guru per Minggu";
           const teacherStats = {};
@@ -2354,7 +2594,7 @@ if (collectionName === "guru" || collectionName === "mapel") {
           tableHTML = headerHTML + summaryHTML + statsTable;
         }
 
-        contentHTML = `<h2>${title}</h2>` + tableHTML;
+        contentHTML = tableHTML;
         printContainer.innerHTML = contentHTML;
       }
 
