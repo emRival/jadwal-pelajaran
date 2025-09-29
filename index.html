@@ -129,11 +129,22 @@
       .schedule-grid th {
         background-color: #f9fafb;
       }
-      .schedule-break-row {
+      /* --- ATURAN BARU FINAL UNTUK ISTIRAHAT --- */
+      .schedule-break-row td,
+      td.schedule-break-row {
         background-color: #f0fdf4; /* green-50 */
         color: #15803d; /* green-700 */
         font-weight: 600;
+        text-align: center;
       }
+
+      /* @media print {
+        #print-output .schedule-grid .schedule-break-row,
+        #print-output .schedule-grid tr.schedule-break-row > td {
+          background-color: #f0fdf4 !important;
+          color: #15803d !important;
+        }
+      } */
       /* Style for highlighting current time */
       .current-timeslot {
         background-color: #fef9c3 !important; /* yellow-100 */
@@ -449,6 +460,28 @@
             </h3>
             <div id="info-content" class="space-y-3"></div>
           </div>
+          <div class="bg-white p-4 rounded-xl shadow-lg">
+            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-indigo-600"
+                viewBox="0 0 20 20"
+                fill="currentColor">
+                <path
+                  d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.993.883L4 8v10a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V6a4 4 0 00-4-4zm0 2a2 2 0 012 2v1H8V6a2 2 0 012-2z" />
+              </svg>
+              <span>Lihat Jadwal Kelas</span>
+            </h3>
+            <p class="text-xs text-slate-500 mb-2">
+              Pilih kelas untuk melihat jadwal mingguan lengkapnya.
+            </p>
+            <input
+              id="filter-kelas-input"
+              list="filter-kelas-datalist"
+              class="w-full p-2 border rounded-md bg-slate-50"
+              placeholder="Cari & pilih kelas..." />
+            <datalist id="filter-kelas-datalist"></datalist>
+          </div>
         </aside>
 
         <!-- Kolom Kanan: Tampilan Jadwal & Admin Panel -->
@@ -518,6 +551,37 @@
               </div>
               <div
                 id="teacher-schedule-content"
+                class="text-slate-600 overflow-x-auto"></div>
+            </div>
+            <div id="class-schedule-view" class="hidden">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h2
+                    id="class-schedule-title"
+                    class="text-xl font-bold text-slate-800">
+                    Jadwal Pelajaran Kelas
+                  </h2>
+                </div>
+                <button
+                  id="print-button-class"
+                  class="no-print bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg hover:bg-slate-300 transition-colors duration-200 flex items-center space-x-2 text-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-8a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span>Cetak</span>
+                </button>
+              </div>
+              <div
+                id="class-schedule-content"
                 class="text-slate-600 overflow-x-auto"></div>
             </div>
           </div>
@@ -1606,6 +1670,7 @@
         document
           .getElementById("teacher-schedule-view")
           .classList.add("hidden");
+        document.getElementById("class-schedule-view").classList.add("hidden");
         renderCalendar();
         fetchAndDisplayPiket(selectedDayIndex);
 
@@ -1886,7 +1951,9 @@
           e.preventDefault();
           const name = addInput.value.trim();
           if (name === "") return;
-          await addDoc(collRef, { name });
+          await addDoc(collRef, {
+            name,
+          });
           form.reset();
         });
 
@@ -1894,11 +1961,17 @@
         onSnapshot(collRef, (snapshot) => {
           if (collectionName === "kelas") {
             items = snapshot.docs
-              .map((doc) => ({ id: doc.id, ...doc.data() }))
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
               .sort(customClassSort);
           } else {
             items = snapshot.docs
-              .map((doc) => ({ id: doc.id, ...doc.data() }))
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
               .sort((a, b) => a.name.localeCompare(b.name));
           }
 
@@ -1907,11 +1980,9 @@
             Array.prototype.push.apply(dataStore, items);
           }
           if (collectionName === "guru" || collectionName === "mapel") {
-            // Dapatkan datalist form secara dinamis (guru-list-datalist atau mapel-list-datalist)
             const datalist = document.getElementById(
               `${collectionName}-list-datalist`
             );
-            // Pastikan elemennya ada sebelum diisi
             if (datalist) {
               datalist.innerHTML = "";
               items.forEach((item) =>
@@ -1921,7 +1992,6 @@
           }
 
           if (collectionName === "guru") {
-            // Bagian ini tetap sama, untuk mengisi filter sidebar dan alat AI
             const filterGuruDatalist = document.getElementById(
               "filter-guru-datalist"
             );
@@ -1945,7 +2015,12 @@
             const checkboxContainer = document.getElementById(
               "schedule-kelas-checkboxes"
             );
+            // BARIS YANG DIPERBAIKI ADA DI BAWAH INI
+            const filterKelasDatalist = document.getElementById(
+              "filter-kelas-datalist"
+            );
             checkboxContainer.innerHTML = "";
+            filterKelasDatalist.innerHTML = "";
             items.forEach((item) => {
               const div = document.createElement("div");
               div.className = "flex items-center";
@@ -1954,6 +2029,8 @@
                             <label for="class-${item.id}" class="ml-2 block text-sm text-gray-900">${item.name}</label>
                         `;
               checkboxContainer.appendChild(div);
+              // Baris ini akan menambahkan kelas ke dalam daftar pencarian
+              filterKelasDatalist.appendChild(new Option(item.name, item.name));
             });
           }
 
@@ -1976,7 +2053,6 @@
           );
         });
       }
-
       function updateRealtimeClockAndHighlight() {
         const now = new Date();
         document.getElementById("clock-time").textContent =
@@ -2270,7 +2346,6 @@
           );
           const teacherLegend = {};
 
-          // Header
           let headerHTML = `
             <div class="print-header">
                 <h2>Jadwal Pelajaran Hari ${dayName}</h2>
@@ -2371,8 +2446,10 @@
             (s) => s.guru === teacherName
           );
 
-          // Hitung JP
-          const teacherStats = { tasks: [], totalJp: 0 };
+          const teacherStats = {
+            tasks: [],
+            totalJp: 0,
+          };
           const teacherMapelJp = {};
 
           teacherSchedules.forEach((schedule) => {
@@ -2394,7 +2471,6 @@
             teacherStats.totalJp += jp;
           }
 
-          // Tambahkan tugas tambahan
           const teacher = allTeachers.find((t) => t.name === teacherName);
           if (teacher && teacher.tasks && teacher.tasks.length > 0) {
             teacher.tasks.forEach((taskId) => {
@@ -2406,7 +2482,6 @@
             });
           }
 
-          // Header
           let headerHTML = `
             <div class="print-header">
                 <h2>Jadwal Mengajar Guru</h2>
@@ -2415,7 +2490,6 @@
             </div>
         `;
 
-          // Summary
           let summaryHTML = `
             <div class="stats-summary">
                 <strong>Ringkasan Beban Mengajar:</strong><br>
@@ -2464,12 +2538,13 @@
           const teacherStats = {};
           let totalAllJp = 0;
 
-          // Initialize
           allTeachers.forEach((teacher) => {
-            teacherStats[teacher.name] = { tasks: [], totalJp: 0 };
+            teacherStats[teacher.name] = {
+              tasks: [],
+              totalJp: 0,
+            };
           });
 
-          // Hitung JP dari mengajar (per mapel)
           const teacherMapelJp = {};
           allSchedules.forEach((schedule) => {
             if (
@@ -2490,7 +2565,6 @@
             }
           });
 
-          // Add teaching tasks
           for (const teacherName in teacherMapelJp) {
             if (teacherStats[teacherName]) {
               for (const mapel in teacherMapelJp[teacherName]) {
@@ -2504,7 +2578,6 @@
             }
           }
 
-          // Add additional tasks
           allTeachers.forEach((teacher) => {
             if (teacher.tasks && teacher.tasks.length > 0) {
               teacher.tasks.forEach((taskId) => {
@@ -2524,7 +2597,6 @@
             a.name.localeCompare(b.name)
           );
 
-          // Calculate total
           sortedTeachers.forEach((teacher) => {
             totalAllJp += teacherStats[teacher.name].totalJp;
           });
@@ -2592,10 +2664,165 @@
     </tbody></table>`;
 
           tableHTML = headerHTML + summaryHTML + statsTable;
+        } else if (viewType === "class") {
+          const className = document
+            .getElementById("class-schedule-title")
+            .textContent.replace("Jadwal Pelajaran: ", "");
+          title = `Jadwal Pelajaran Kelas ${className}`;
+
+          let headerHTML = `
+            <div class="print-header">
+                <h2>Jadwal Pelajaran Kelas ${className}</h2>
+                <h3 style="font-size: 14px; margin-top: 5px;">IDN Boarding School Pamijahan</h3>
+                <p class="print-date">Dicetak pada: ${currentDate}</p>
+            </div>
+        `;
+
+          let classTable =
+            '<table class="w-full schedule-grid"><thead><tr><th style="width: 12%;">Waktu</th>';
+          for (let i = 1; i <= 5; i++) {
+            classTable += `<th>${daysOfWeek[i]}</th>`;
+          }
+          classTable += "</tr></thead><tbody>";
+
+          timeSlots.forEach((slot) => {
+            if (slot.type === "break") {
+              classTable += `<tr class="schedule-break-row"><td colspan="6">${slot.name}<br><span style="font-size: 8px;">(${slot.time})</span></td></tr>`;
+            } else {
+              classTable += `<tr><td class="font-semibold">JP ${slot.jp}<br><span style="font-size: 8px;">${slot.time}</span></td>`;
+              for (let j = 1; j <= 5; j++) {
+                const schedule = allSchedules.find(
+                  (s) =>
+                    s.jp == slot.jp &&
+                    s.day == j &&
+                    s.classes.includes(className)
+                );
+                if (schedule) {
+                  const isBreak = schedule.mapel
+                    .toLowerCase()
+                    .includes("istirahat");
+                  const cellClass = isBreak ? 'class="schedule-break-row"' : "";
+                  const cellContent = `<strong>${
+                    schedule.mapel
+                  }</strong><br><span style="font-size: 8px;">${
+                    schedule.guru || ""
+                  }</span>`;
+                  classTable += `<td ${cellClass}>${cellContent}</td>`;
+                } else {
+                  classTable += `<td>-</td>`;
+                }
+              }
+              classTable += "</tr>";
+            }
+          });
+          classTable += "</tbody></table>";
+          tableHTML = headerHTML + classTable;
         }
 
         contentHTML = tableHTML;
         printContainer.innerHTML = contentHTML;
+      }
+
+      function displayClassScheduleView(className) {
+        if (!className) {
+          displayDailyScheduleView();
+          return;
+        }
+        document.getElementById("daily-schedule-view").classList.add("hidden");
+        document
+          .getElementById("teacher-schedule-view")
+          .classList.add("hidden");
+        document
+          .getElementById("class-schedule-view")
+          .classList.remove("hidden");
+
+        document.getElementById(
+          "class-schedule-title"
+        ).textContent = `Jadwal Pelajaran: ${className}`;
+
+        let tableHTML =
+          '<table class="w-full schedule-grid"><thead><tr><th>Waktu</th>';
+        for (let i = 1; i <= 5; i++) {
+          tableHTML += `<th>${daysOfWeek[i]}</th>`;
+        }
+        tableHTML += "</tr></thead><tbody>";
+
+        const processedSlots = {}; // Untuk melacak sel yang sudah di-merge
+
+        timeSlots.forEach((slot, slotIndex) => {
+          if (slot.type === "break") {
+            tableHTML += `<tr data-timeslot="${slot.time}" class="schedule-break-row"><td colspan="6">${slot.name} (${slot.time})</td></tr>`;
+            return;
+          }
+
+          tableHTML += `<tr data-timeslot="${slot.time}"><td class="font-semibold bg-slate-50">JP ${slot.jp}<br><span class="text-xs font-normal">${slot.time}</span></td>`;
+          for (let dayIndex = 1; dayIndex <= 5; dayIndex++) {
+            const slotKey = `${dayIndex}-${slot.jp}`;
+            if (processedSlots[slotKey]) {
+              continue; // Lewati jika sel ini sudah menjadi bagian dari merge
+            }
+
+            const schedule = allSchedules.find(
+              (s) =>
+                s.jp == slot.jp &&
+                s.day == dayIndex &&
+                s.classes.includes(className)
+            );
+
+            if (schedule) {
+              const isBreak = schedule.mapel
+                .toLowerCase()
+                .includes("istirahat");
+              let rowspan = 1;
+
+              if (isBreak) {
+                // Logika untuk merge (rowspan) jika istirahat berlanjut
+                for (
+                  let nextSlotIndex = slotIndex + 1;
+                  nextSlotIndex < timeSlots.length;
+                  nextSlotIndex++
+                ) {
+                  const nextSlot = timeSlots[nextSlotIndex];
+                  if (nextSlot.type !== "lesson") break;
+
+                  const nextSchedule = allSchedules.find(
+                    (s) =>
+                      s.jp == nextSlot.jp &&
+                      s.day == dayIndex &&
+                      s.classes.includes(className) &&
+                      s.mapel.toLowerCase().includes("istirahat")
+                  );
+
+                  if (nextSchedule) {
+                    rowspan++;
+                    processedSlots[`${dayIndex}-${nextSlot.jp}`] = true;
+                  } else {
+                    break;
+                  }
+                }
+              }
+
+              const cellClass = isBreak
+                ? "schedule-break-row"
+                : "hover:bg-indigo-50";
+              const cellContent = isBreak
+                ? `<strong>${schedule.mapel}</strong>`
+                : `<div class="font-bold text-indigo-700">${
+                    schedule.mapel
+                  }</div><div class="text-xs text-slate-600">${
+                    schedule.guru || ""
+                  }</div>`;
+
+              tableHTML += `<td class="${cellClass}" rowspan="${rowspan}">${cellContent}</td>`;
+            } else {
+              tableHTML += `<td>-</td>`;
+            }
+          }
+          tableHTML += "</tr>";
+        });
+
+        tableHTML += "</tbody></table>";
+        document.getElementById("class-schedule-content").innerHTML = tableHTML;
       }
 
       function renderMainView() {
@@ -2881,8 +3108,21 @@
           .addEventListener("change", (e) => {
             const selectedTeacher = e.target.value;
             if (allTeachers.some((t) => t.name === selectedTeacher)) {
+              document.getElementById("filter-kelas-input").value = "";
               displayTeacherScheduleView(selectedTeacher);
             } else if (selectedTeacher === "") {
+              displayDailyScheduleView();
+            }
+          });
+
+        document
+          .getElementById("filter-kelas-input")
+          .addEventListener("change", (e) => {
+            const selectedClass = e.target.value;
+            if (allClasses.some((c) => c.name === selectedClass)) {
+              document.getElementById("filter-guru-input").value = "";
+              displayClassScheduleView(selectedClass);
+            } else if (selectedClass === "") {
               displayDailyScheduleView();
             }
           });
@@ -2906,6 +3146,12 @@
             window.print();
           });
         document
+          .getElementById("print-button-class")
+          .addEventListener("click", () => {
+            generatePrintableView("class");
+            window.print();
+          });
+        document
           .getElementById("print-stats-button")
           .addEventListener("click", () => {
             generatePrintableView("stats");
@@ -2926,7 +3172,6 @@
           updateClassSelectionLimit
         );
         scheduleMapelInput.addEventListener("input", (e) => {
-          // Use input for better responsiveness
           const isBreak = e.target.value.toLowerCase().includes("istirahat");
           if (isBreak) {
             scheduleGuruInput.value = "";
@@ -3030,18 +3275,13 @@
           onMasterDataUpdate
         );
 
-        // === TAMBAHKAN INI DI DALAM FUNGSI init() SETELAH setupMasterDataView ===
-
-        // Variabel global (tambahkan di bagian atas bersama let allSchedules, dll)
         let currentTeacherForAssignment = null;
 
-        // === TUGAS TAMBAHAN FEATURE ===
         const tugasCollRef = collection(
           db,
           `artifacts/${appId}/public/data/tugas`
         );
 
-        // Listener untuk data tugas
         onSnapshot(tugasCollRef, (snapshot) => {
           allTugas = snapshot.docs.map((doc) => ({
             id: doc.id,
@@ -3052,8 +3292,6 @@
           renderTeacherStats();
         });
 
-        // Form tambah tugas baru
-        // Form tambah/edit tugas
         document
           .getElementById("tugas-form")
           .addEventListener("submit", async (e) => {
@@ -3064,22 +3302,25 @@
 
             if (name && jp > 0) {
               if (id) {
-                // Edit existing
                 await setDoc(
                   doc(db, `artifacts/${appId}/public/data/tugas`, id),
-                  { name, jp }
+                  {
+                    name,
+                    jp,
+                  }
                 );
                 showToast("Jabatan berhasil diperbarui!");
               } else {
-                // Add new
-                await addDoc(tugasCollRef, { name, jp });
+                await addDoc(tugasCollRef, {
+                  name,
+                  jp,
+                });
                 showToast("Jabatan berhasil ditambahkan!");
               }
               document.getElementById("clear-tugas-btn").click();
             }
           });
 
-        // Clear form tugas
         document
           .getElementById("clear-tugas-btn")
           .addEventListener("click", () => {
@@ -3091,13 +3332,10 @@
               "Tambah Jabatan";
           });
 
-        // Search tugas
         document
           .getElementById("tugas-search")
           .addEventListener("input", renderTugasList);
 
-        // Render daftar tugas
-        // Render daftar tugas dengan search dan edit
         function renderTugasList() {
           const list = document.getElementById("tugas-list");
           const searchInput = document.getElementById("tugas-search");
@@ -3162,8 +3400,6 @@
           });
         }
 
-        // Render daftar penugasan guru
-        // Render daftar penugasan guru dengan search
         function renderTeacherAssignmentList() {
           const container = document.getElementById("teacher-assignment-list");
           const searchInput = document.getElementById("teacher-search");
@@ -3215,15 +3451,10 @@
           });
         }
 
-        // Add search event listener
         document
           .getElementById("teacher-search")
           .addEventListener("input", renderTeacherAssignmentList);
-        // Buka modal penugasan
-        // Buka modal penugasan dengan search
-        // Buka modal penugasan dengan search
-        // Buka modal penugasan dengan search
-        // Buka modal penugasan dengan search
+
         function openAssignmentModal(teacher) {
           currentTeacherForAssignment = teacher;
           const modal = document.getElementById("assignment-modal");
@@ -3240,17 +3471,14 @@
             return;
           }
 
-          // INISIALISASI STATE AWAL dari data Firestore
           const checkedTasks = new Set(teacher.tasks || []);
 
-          // Add search input
           const searchDiv = document.createElement("div");
           searchDiv.className = "mb-3";
           searchDiv.innerHTML =
             '<input type="text" id="modal-task-search" placeholder="Cari tugas..." class="w-full p-2 border rounded-md text-sm">';
           body.appendChild(searchDiv);
 
-          // Container untuk checkbox tasks
           const tasksContainer = document.createElement("div");
           tasksContainer.id = "modal-tasks-container";
           tasksContainer.className = "max-h-60 overflow-y-auto";
@@ -3277,7 +3505,6 @@
               div.className =
                 "flex items-center py-2 px-2 hover:bg-slate-50 rounded";
 
-              // Cek dari state checkedTasks yang sudah di-maintain
               const isChecked = checkedTasks.has(tugas.id);
 
               div.innerHTML = `
@@ -3294,7 +3521,6 @@
                 </label>
             `;
 
-              // Event listener untuk update state saat checkbox berubah
               const checkbox = div.querySelector('input[type="checkbox"]');
               checkbox.addEventListener("change", (e) => {
                 const taskId = e.target.dataset.taskId;
@@ -3312,7 +3538,6 @@
 
           renderModalTasks();
 
-          // Event listener untuk search
           const searchInput = searchDiv.querySelector("#modal-task-search");
           searchInput.addEventListener("input", (e) => {
             renderModalTasks(e.target.value);
@@ -3321,9 +3546,6 @@
           modal.classList.remove("hidden");
         }
 
-        // Simpan penugasan
-        // Simpan penugasan
-        // Simpan penugasan
         document
           .getElementById("assignment-modal-save")
           .addEventListener("click", async () => {
@@ -3332,7 +3554,6 @@
               return;
             }
 
-            // Ambil SEMUA checkbox yang tercentang dari container
             const tasksContainer = document.getElementById(
               "modal-tasks-container"
             );
@@ -3366,7 +3587,9 @@
                   name: currentTeacherForAssignment.name,
                   tasks: selectedTasks,
                 },
-                { merge: true }
+                {
+                  merge: true,
+                }
               );
 
               document
@@ -3381,14 +3604,12 @@
               showToast("Gagal menyimpan. Cek console untuk detail.");
             }
           });
-        // Tutup modal
         document
           .getElementById("assignment-modal-close")
           .addEventListener("click", () => {
             document.getElementById("assignment-modal").classList.add("hidden");
             currentTeacherForAssignment = null;
           });
-        // === END TUGAS TAMBAHAN FEATURE ===
 
         const piketApiForm = document.getElementById("piket-api-form");
         piketApiForm.addEventListener("submit", async (e) => {
@@ -3399,7 +3620,9 @@
             `artifacts/${appId}/public/data/config`,
             "piketApi"
           );
-          await setDoc(piketApiRef, { url: url });
+          await setDoc(piketApiRef, {
+            url: url,
+          });
           showToast("URL API Piket berhasil disimpan!");
           fetchAndDisplayPiket(selectedDayIndex);
         });
@@ -3429,7 +3652,9 @@
         jpSettingsContainer.addEventListener("change", async (e) => {
           if (e.target.name === "jp-calculation") {
             const newMethod = e.target.value;
-            await setDoc(jpConfigRef, { method: newMethod });
+            await setDoc(jpConfigRef, {
+              method: newMethod,
+            });
             showToast("Pengaturan perhitungan JP berhasil disimpan!");
           }
         });
@@ -3467,7 +3692,6 @@
           }
 
           if (id) {
-            // EDIT MODE
             const scheduleData = {
               day: document.getElementById("schedule-day").value,
               jp: startJp,
@@ -3488,7 +3712,6 @@
             await setDoc(docRef, scheduleData);
             showToast("Jadwal berhasil diperbarui!");
           } else {
-            // ADD MODE
             let conflicts = [];
             for (let jp = startJp; jp <= endJp; jp++) {
               const tempScheduleData = {
@@ -3553,7 +3776,10 @@
               } else if (!Array.isArray(data.classes)) {
                 data.classes = [];
               }
-              return { id: doc.id, ...data };
+              return {
+                id: doc.id,
+                ...data,
+              };
             });
             onMasterDataUpdate();
           }
@@ -3640,7 +3866,6 @@
               if (slot.type !== "lesson") return;
               tableHTML += `<tr><td class="font-semibold bg-slate-50">JP ${slot.jp}<br><span class="text-xs font-normal">${slot.time}</span></td>`;
               for (let j = 1; j <= 5; j++) {
-                // Day of week
                 const scheduleA = allSchedules.find(
                   (s) => s.jp == slot.jp && s.day == j && s.guru === teacherA
                 );
@@ -3674,7 +3899,9 @@
 
         function downloadFile(content, fileName, contentType) {
           const a = document.createElement("a");
-          const file = new Blob([content], { type: contentType });
+          const file = new Blob([content], {
+            type: contentType,
+          });
           a.href = URL.createObjectURL(file);
           a.download = fileName;
           a.click();
@@ -3722,7 +3949,6 @@
 
         setInterval(updateRealtimeClockAndHighlight, 1000);
 
-        // --- Info Section ---
         const infoForm = document.getElementById("info-form");
         const infoIdInput = document.getElementById("info-id");
         const infoTitleInput = document.getElementById("info-title");
@@ -3779,7 +4005,6 @@
           }
 
           infoItems.forEach((item) => {
-            // Render for admin list
             const adminItem = document.createElement("div");
             adminItem.className =
               "bg-white p-3 rounded-lg shadow-sm flex justify-between items-start";
@@ -3807,7 +4032,10 @@
               infoTitleInput.value = item.title;
               infoUrlInput.value = item.url;
               infoDescInput.value = item.description;
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              });
             };
             adminItem.querySelector(".delete-btn").onclick = async () => {
               if (confirm(`Yakin ingin menghapus informasi "${item.title}"?`)) {
@@ -3819,7 +4047,6 @@
             };
             infoListContainer.appendChild(adminItem);
 
-            // Render for public view
             const publicItem = document.createElement("a");
             publicItem.href = item.url;
             publicItem.target = "_blank";
