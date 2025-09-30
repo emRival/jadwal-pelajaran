@@ -2187,7 +2187,7 @@
           piketCacheTime &&
           now - piketCacheTime < PIKET_CACHE_DURATION
         ) {
-          console.log("Using cached piket data");
+          // console.log("Using cached piket data");
           displayPiketData(container, cachedPiketData, dayName, piketTypeMap);
           return;
         }
@@ -2211,14 +2211,14 @@
           }
 
           const apiUrl = apiDoc.data().url;
-          console.log("Fetching piket data from API...");
+          // console.log("Fetching piket data from API...");
           const response = await fetch(apiUrl);
 
           if (!response.ok)
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
           const data = await response.json();
-          console.log("API Response:", data);
+          // console.log("API Response:", data);
 
           if (data.status !== "success" || !data.data) {
             throw new Error("Format API tidak valid");
