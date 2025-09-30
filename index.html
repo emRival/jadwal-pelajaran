@@ -1350,6 +1350,10 @@
       let allTugas = [];
       let currentTeacherForAssignment = null;
 
+      let cachedPiketData = null;
+      let piketCacheTime = null;
+      const PIKET_CACHE_DURATION = 5 * 60 * 1000;
+
       const appId = "default-app-id";
 
       const daysOfWeek = [
@@ -1390,10 +1394,6 @@
 
       let selectedDayIndex;
       let jpCalculationMethod = "byClass"; // Default value
-
-     
-
-      
 
       function showToast(message) {
         const toast = document.getElementById("toast");
@@ -2171,8 +2171,6 @@
 
       async function fetchAndDisplayPiket(dayIndex) {
         const container = document.getElementById("piket-content");
-        container.innerHTML =
-          '<p class="text-xs text-slate-400">Memuat data piket...</p>';
         const dayName = daysOfWeekApi[dayIndex];
 
         const piketTypeMap = {
@@ -2181,6 +2179,22 @@
           kelas_smk: { title: "Piket Kelas SMK", icon: "🏢" },
           piket_laptop: { title: "Piket Laptop", icon: "💻" },
         };
+
+        // Cek cache dulu
+        const now = Date.now();
+        if (
+          cachedPiketData &&
+          piketCacheTime &&
+          now - piketCacheTime < PIKET_CACHE_DURATION
+        ) {
+          console.log("Using cached piket data");
+          displayPiketData(container, cachedPiketData, dayName, piketTypeMap);
+          return;
+        }
+
+        // Jika cache tidak ada atau expired, fetch dari API
+        container.innerHTML =
+          '<p class="text-xs text-slate-400">Memuat data piket...</p>';
 
         try {
           const piketApiRef = doc(
@@ -2196,47 +2210,67 @@
             return;
           }
 
-          const apiUrlWithQuery = apiDoc.data().url + `?hari=${dayName}`;
-          const response = await fetch(apiUrlWithQuery);
+          const apiUrl = apiDoc.data().url;
+          console.log("Fetching piket data from API...");
+          const response = await fetch(apiUrl);
 
-          if (!response.ok) throw new Error("Gagal mengambil data dari API");
+          if (!response.ok)
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
           const data = await response.json();
-          if (data.status !== "success" || !data.data)
+          console.log("API Response:", data);
+
+          if (data.status !== "success" || !data.data) {
             throw new Error("Format API tidak valid");
-
-          container.innerHTML = "";
-          for (const type in piketTypeMap) {
-            const piketDayData = data.data[type]?.[dayName];
-            if (!piketDayData) continue;
-
-            const card = document.createElement("div");
-            card.className = "bg-slate-50 p-3 rounded-lg";
-
-            let content = "";
-            if (piketDayData.status === "puasa") {
-              content =
-                '<p class="text-sm font-medium text-slate-500">Puasa Senin-Kamis</p>';
-            } else if (piketDayData.guru && piketDayData.guru.length > 0) {
-              content = `<ul class="text-sm font-semibold text-slate-700">${piketDayData.guru
-                .map((g) => `<li>${g}</li>`)
-                .join("")}</ul>`;
-            } else {
-              content = '<p class="text-sm text-slate-400">- Tidak ada -</p>';
-            }
-
-            card.innerHTML = `
-                        <p class="text-xs font-bold text-indigo-700">${piketTypeMap[type].icon} ${piketTypeMap[type].title}</p>
-                        ${content}
-                    `;
-            container.appendChild(card);
           }
+
+          // Simpan ke cache
+          cachedPiketData = data;
+          piketCacheTime = now;
+
+          displayPiketData(container, data, dayName, piketTypeMap);
         } catch (error) {
           console.error("Error fetching piket data:", error);
-          container.innerHTML = `<p class="text-xs text-red-600">Gagal memuat data piket. ${error.message}</p>`;
+          container.innerHTML = `<p class="text-xs text-red-600">Gagal memuat data piket: ${error.message}</p>`;
         }
       }
 
+      function displayPiketData(container, data, dayName, piketTypeMap) {
+        container.innerHTML = "";
+
+        for (const type in piketTypeMap) {
+          if (!data.data[type]) continue;
+
+          const piketDayData = data.data[type][dayName];
+          if (!piketDayData) continue;
+
+          const card = document.createElement("div");
+          card.className = "bg-slate-50 p-3 rounded-lg";
+
+          let content = "";
+          if (piketDayData.status === "puasa") {
+            content =
+              '<p class="text-sm font-medium text-slate-500">Puasa Senin-Kamis</p>';
+          } else if (piketDayData.guru && piketDayData.guru.length > 0) {
+            content = `<ul class="text-sm font-semibold text-slate-700">${piketDayData.guru
+              .map((g) => `<li>${g}</li>`)
+              .join("")}</ul>`;
+          } else {
+            content = '<p class="text-sm text-slate-400">- Tidak ada -</p>';
+          }
+
+          card.innerHTML = `
+            <p class="text-xs font-bold text-indigo-700">${piketTypeMap[type].icon} ${piketTypeMap[type].title}</p>
+            ${content}
+          `;
+          container.appendChild(card);
+        }
+
+        if (container.innerHTML === "") {
+          container.innerHTML =
+            '<p class="text-xs text-slate-400">Tidak ada data piket untuk hari ini.</p>';
+        }
+      }
       function generatePrintableView(viewType) {
         const printContainer = document.getElementById("print-output");
         let contentHTML = "";
