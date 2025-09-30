@@ -1391,99 +1391,9 @@
       let selectedDayIndex;
       let jpCalculationMethod = "byClass"; // Default value
 
-      const piketApiData = {
-        status: "success",
-        data: {
-          piket_dapur: {
-            senin: { status: "puasa", guru: null },
-            selasa: { status: "active", guru: ["Indar Rasmono Bayu"] },
-            rabu: { status: "active", guru: ["Hudzaifah Alhijri Sukalwi"] },
-            kamis: { status: "puasa", guru: null },
-            jumat: { status: "active", guru: ["Muhammad Maruf, S.Pd"] },
-          },
-          kelas_smp: {
-            senin: {
-              status: "active",
-              guru: ["Faisal Ihsan Ramadhan, S.Kom "],
-            },
-            selasa: { status: "active", guru: ["M. Agung Kholiqiin "] },
-            rabu: { status: "active", guru: ["Musthaqim Rafli "] },
-            kamis: { status: "active", guru: ["Indara Lasmono Bayu "] },
-            jumat: { status: "active", guru: ["Septian Cahya Azahary, S.Pd"] },
-          },
-          kelas_smk: {
-            senin: { status: "active", guru: ["Malik Abdul Wahid "] },
-            selasa: {
-              status: "active",
-              guru: ["Hasan Fadli Hasibuan, S.Q.,S.Ag.,S.P"],
-            },
-            rabu: { status: "active", guru: ["Rahmat Fadlan, S.Tr.T"] },
-            kamis: { status: "active", guru: ["Niki Muhammad Nafis, S.Kom "] },
-            jumat: { status: "active", guru: ["Reyhan Nazera Rusmana "] },
-          },
-          piket_laptop: {
-            senin: {
-              status: "active",
-              guru: ["Toha Fakrudin, S.Pd", "Indar Rasmono Bayu"],
-            },
-            selasa: {
-              status: "active",
-              guru: ["Dwi Erlangga, S.Kom", "Rizqy Akbar"],
-            },
-            rabu: {
-              status: "active",
-              guru: ["Dwi Erlangga, S.Kom", "Toha Fakrudin, S.Pd"],
-            },
-            kamis: {
-              status: "active",
-              guru: ["Dwi Erlangga, S.Kom", "Indar Rasmono Bayu"],
-            },
-            jumat: {
-              status: "active",
-              guru: ["Dwi Erlangga, S.Kom", "Rizqy Akbar"],
-            },
-          },
-        },
-      };
+     
 
-      async function mockFetchPiketApi(url) {
-        const urlObj = new URL(url);
-        const params = urlObj.searchParams;
-        const requestedJadwal = params.get("jadwal");
-        const requestedHari = params.get("hari");
-
-        let responseData = JSON.parse(JSON.stringify(piketApiData.data));
-
-        if (requestedJadwal) {
-          if (responseData[requestedJadwal]) {
-            const singleJadwal = responseData[requestedJadwal];
-            responseData = { [requestedJadwal]: singleJadwal };
-          } else {
-            responseData = {};
-          }
-        }
-
-        if (requestedHari) {
-          for (const jadwalType in responseData) {
-            if (responseData[jadwalType][requestedHari]) {
-              const singleDayData = responseData[jadwalType][requestedHari];
-              responseData[jadwalType] = { [requestedHari]: singleDayData };
-            } else {
-              delete responseData[jadwalType];
-            }
-          }
-        }
-
-        const mockResponse = {
-          status: "success",
-          data: responseData,
-        };
-
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockResponse),
-        });
-      }
+      
 
       function showToast(message) {
         const toast = document.getElementById("toast");
@@ -2287,7 +2197,7 @@
           }
 
           const apiUrlWithQuery = apiDoc.data().url + `?hari=${dayName}`;
-          const response = await mockFetchPiketApi(apiUrlWithQuery);
+          const response = await fetch(apiUrlWithQuery);
 
           if (!response.ok) throw new Error("Gagal mengambil data dari API");
 
