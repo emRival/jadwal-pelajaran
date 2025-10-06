@@ -1376,20 +1376,24 @@
       ];
 
       const timeSlots = [
-        { type: "lesson", jp: 1, time: "07:30-08:10" },
-        { type: "lesson", jp: 2, time: "08:10-08:55" },
-        { type: "lesson", jp: 3, time: "08:55-09:30" },
-        { type: "lesson", jp: 4, time: "09:30-09:50" },
-        { type: "lesson", jp: 5, time: "09:50-10:30" },
-        { type: "lesson", jp: 6, time: "10:30-11:10" },
+        { type: "lesson", jp: 1, time: "07:30-08:15" },
+        { type: "lesson", jp: 2, time: "08:15-09:00" },
+        { type: "lesson", jp: 3, time: "09:00-09:45" },
         {
           type: "break",
-          name: "Istirahat & Sholat Dzuhur",
-          time: "11:10-13:00",
+          name: "Istirahat",
+          time: "09:45-10:00",
         },
-        { type: "lesson", jp: 7, time: "13:00-13:45" },
-        { type: "lesson", jp: 8, time: "13:45-14:30" },
-        { type: "lesson", jp: 9, time: "14:30-15:00" },
+
+        { type: "lesson", jp: 4, time: "10:00-10:45" },
+        { type: "lesson", jp: 5, time: "10:45-11:30" },
+        {
+          type: "break",
+          name: "ISHOMA & Islamic Public Speaking",
+          time: "11:30-13:00",
+        },
+        { type: "lesson", jp: 6, time: "13:00-13:45" },
+        { type: "lesson", jp: 7, time: "13:45-14:30" },
       ];
 
       let selectedDayIndex;
@@ -1456,7 +1460,7 @@
           return aParts.grade - bParts.grade;
         }
 
-        const majorOrder = ["RPL", "TKJ", "DKV"];
+        const majorOrder = ["RPL", "DKV", "TKJ"];
         const aMajorIndex = majorOrder.indexOf(aParts.major);
         const bMajorIndex = majorOrder.indexOf(bParts.major);
 
@@ -1490,7 +1494,7 @@
 
         if (aParts.grade !== bParts.grade) return aParts.grade - bParts.grade;
 
-        const majorOrder = ["RPL", "TKJ", "DKV"];
+        const majorOrder = ["RPL", "DKV", "TKJ"];
         const aMajorIndex = majorOrder.indexOf(aParts.major);
         const bMajorIndex = majorOrder.indexOf(bParts.major);
 
