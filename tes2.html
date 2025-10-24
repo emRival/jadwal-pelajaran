@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Jadwal Pelajaran - IDN Pamijahan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            text-align: center;
+            color: #312E81;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            text-align: center;
+            color: #6B7280;
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .btn-upload:hover {
+            background: #4338CA;
+        }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .btn-print:hover {
+            background: #059669;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #10B981;
+        }
+
+        .error {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #FEE2E2;
+            color: #DC2626;
+            border-radius: 8px;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 60px;
+            text-align: center;
+        }
+
+        .empty-state svg {
+            margin: 0 auto 20px;
+            color: #D1D5DB;
+        }
+
+        .schedule-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .schedule-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+
+        .schedule-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid black;
+        }
+
+        .signature-section {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 12px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            display: inline-block;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .signature-line {
+            margin-top: 60px;
+            border-top: 1px solid black;
+            padding-top: 5px;
+        }
+
+        .signature-label {
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            margin-bottom: 15px;
+        }
+
+        th, td {
+            border: 1px solid #374151;
+            padding: 4px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #E5E7EB;
+            font-weight: bold;
+        }
+
+        .time-col {
+            background-color: #F3F4F6;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .break-row {
+            background-color: #DCFCE7 !important;
+            color: #166534 !important;
+            font-weight: 600;
+            padding: 8px !important;
+        }
+
+        .ishoma-row {
+            background-color: #FEF9C3 !important;
+            font-weight: 600;
+            padding: 8px !important;
+        }
+
+        .mapel-it { background-color: #FDE68A; }
+        .mapel-diniyah { background-color: #BBF7D0; }
+        .mapel-english { background-color: #BFDBFE; }
+        .mapel-bk { background-color: #FFFFFF; }
+
+        .legend {
+            margin-top: 20px;
+            font-size: 10px;
+        }
+
+        .legend h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .legend-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .legend-grid.smp {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .legend-grid.smk {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .legend-group-title {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 3px;
+        }
+
+        .color-box {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #374151;
+            margin-right: 6px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0.7cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .header, .no-print {
+                display: none !important;
+            }
+
+            .schedule-content {
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+
+            .page-break-inside-avoid {
+                page-break-inside: avoid;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Generator Jadwal Pelajaran</h1>
+            <p>IDN Boarding School Pamijahan Bogor</p>
+            
+            <div class="upload-section">
+                <label for="fileInput" class="btn-upload">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Upload File JSON</span>
+                </label>
+                <input type="file" id="fileInput" accept=".json">
+                
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label style="font-size: 14px; color: #6B7280; margin-right: 8px;">Nama Kepala Unit SMP:</label>
+                        <input type="text" id="kepalaUnitSMP" placeholder="Contoh: Dr. Ahmad Dahlan, M.Pd" 
+                               style="padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; width: 250px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 14px; color: #6B7280; margin-right: 8px;">Nama Kepala Unit SMK:</label>
+                        <input type="text" id="kepalaUnitSMK" placeholder="Contoh: Drs. Budi Santoso, M.Pd" 
+                               style="padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; width: 250px;">
+                    </div>
+                </div>
+                
+                <div id="fileInfo" style="display: none;" class="file-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span id="fileName"></span>
+                </div>
+                
+                <div id="error" style="display: none;" class="error">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span id="errorText"></span>
+                </div>
+                
+                <button id="printBtn" style="display: none;" class="btn-print" onclick="window.print()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Print / Download PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <p style="color: #6B7280; font-size: 18px; margin-bottom: 10px;">
+                Upload file JSON untuk generate jadwal pelajaran
+            </p>
+            <p style="color: #9CA3AF; font-size: 14px;">
+                Format: jadwal_pelajaran_terpisah.json
+            </p>
+        </div>
+
+        <!-- Schedule Content -->
+        <div id="scheduleContent" class="schedule-content" style="display: none;"></div>
+    </div>
+
+    <script>
+        const timeSlots = {
+            1: '07:30-08:15',
+            2: '08:15-09:00',
+            3: '09:00-09:45',
+            4: '10:00-10:45',
+            5: '10:45-11:30',
+            6: '13:00-13:45',
+            7: '13:45-14:30'
+        };
+
+        const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at'];
+        const smpClasses = ['7', '8A', '8B', '9'];
+        const smkClasses = ['10 RPL', '10 DKV', '10 TKJ', '11 RPL', '11 DKV', '11 TKJ'];
+
+        const teacherCodesSMP = {
+            'Faisal Ihsan Ramadhan, S.Kom': { code: 'IT-1', subject: 'IT', group: 'IT' },
+            'Niki Muhammad Nafis, S.Kom': { code: 'IT-2', subject: 'IT', group: 'IT' },
+            'Rahmat Fadlan, S.Tr.T': { code: 'IT-3', subject: 'IT', group: 'IT' },
+            'Junaidi, S.Pd': { code: 'IT-4', subject: 'IT', group: 'IT' },
+            'Khoironi Sitorus, M.Pd': { code: 'DN-1', subject: 'Diniyah', group: 'Diniyah' },
+            'Ikhwan Maulana, S. Pd': { code: 'DN-2', subject: 'Diniyah', group: 'Diniyah' },
+            'Toha Fakrudin, S.Pd': { code: 'EN-1', subject: 'English', group: 'English' },
+            'Muhammad Maruf, S.Pd': { code: 'EN-2', subject: 'English', group: 'English' },
+            'Ikhsan Maulana, S.Pd': { code: 'BK-1', subject: 'BK', group: 'BK' }
+        };
+
+        const teacherCodesSMK = {
+            'Muhammad Ammar Ayysy, S.Kom': { code: 'IT-1', subject: 'IT', group: 'IT' },
+            'Hudzaifah Alhijri Sukalwi': { code: 'IT-2', subject: 'IT', group: 'IT' },
+            'M. Agung Kholiqiin': { code: 'IT-3', subject: 'IT', group: 'IT' },
+            'Musthaqim Rafli': { code: 'IT-4', subject: 'IT', group: 'IT' },
+            'Reyhan Nazera Rusmana, S.Kom': { code: 'IT-5', subject: 'IT', group: 'IT' },
+            'Malik Abdul Wahid': { code: 'IT-6', subject: 'IT', group: 'IT' },
+            'Ahmad': { code: 'DN-1', subject: 'Diniyah', group: 'Diniyah' },
+            'Moh Alfani Syahri': { code: 'DN-2', subject: 'Diniyah', group: 'Diniyah' },
+            'Hasan Fadli Hasibuan, S.Q.,S.Ag.,S.P': { code: 'EN-1', subject: 'English', group: 'English' },
+            'Septian Cahya Azahary, S.Pd': { code: 'EN-2', subject: 'English', group: 'English' },
+            'Ikhsan Maulana, S.Pd': { code: 'BK-1', subject: 'BK', group: 'BK' }
+        };
+
+        let jsonData = null;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileInfo').style.display = 'flex';
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    jsonData = JSON.parse(event.target.result);
+                    document.getElementById('error').style.display = 'none';
+                    generateSchedule();
+                } catch (err) {
+                    document.getElementById('errorText').textContent = 'Format JSON tidak valid!';
+                    document.getElementById('error').style.display = 'flex';
+                    jsonData = null;
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function getScheduleData(classes, level) {
+            const teacherCodes = level === 'smp' ? teacherCodesSMP : teacherCodesSMK;
+            const schedule = {};
+
+            classes.forEach(className => {
+                schedule[className] = {};
+                days.forEach((_, dayIndex) => {
+                    schedule[className][dayIndex + 1] = {};
+                    [1, 2, 3, 4, 5, 6, 7].forEach(jp => {
+                        schedule[className][dayIndex + 1][jp] = null;
+                    });
+                });
+            });
+
+            jsonData.forEach(entry => {
+                const day = parseInt(entry.day);
+                const jp = entry.jp;
+
+                entry.classes.forEach(className => {
+                    if (classes.includes(className)) {
+                        const teacherInfo = teacherCodes[entry.guru];
+                        if (teacherInfo) {
+                            schedule[className][day][jp] = {
+                                code: teacherInfo.code,
+                                subject: teacherInfo.subject
+                            };
+                        }
+                    }
+                });
+            });
+
+            return schedule;
+        }
+
+        function getCellClass(subject) {
+            if (!subject) return '';
+            switch(subject.toLowerCase()) {
+                case 'it': return 'mapel-it';
+                case 'diniyah': return 'mapel-diniyah';
+                case 'english': return 'mapel-english';
+                case 'bk': return 'mapel-bk';
+                default: return '';
+            }
+        }
+
+        function generateLegend(level) {
+            const teacherCodes = level === 'smp' ? teacherCodesSMP : teacherCodesSMK;
+            const grouped = {};
+
+            Object.entries(teacherCodes).forEach(([teacher, info]) => {
+                if (!grouped[info.group]) {
+                    grouped[info.group] = [];
+                }
+                grouped[info.group].push({ teacher, ...info });
+            });
+
+            const groupOrder = ['IT', 'Diniyah', 'English', 'BK'];
+            let html = `<div class="legend"><h3>Keterangan Guru & Mata Pelajaran ${level === 'smp' ? 'SMP' : 'SMK'}</h3>`;
+            html += `<div class="legend-grid ${level}">`;
+
+            groupOrder.forEach(group => {
+                if (!grouped[group]) return;
+                html += '<div>';
+                html += `<div class="legend-group-title">${group}</div>`;
+                
+                grouped[group]
+                    .sort((a, b) => parseInt(a.code.split('-')[1]) - parseInt(b.code.split('-')[1]))
+                    .forEach(item => {
+                        html += `<div class="legend-item">`;
+                        html += `<span class="color-box ${getCellClass(item.subject)}"></span>`;
+                        html += `<span><strong>${item.code}:</strong> ${item.teacher}</span>`;
+                        html += `</div>`;
+                    });
+                html += '</div>';
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function generateScheduleTable(classes, level) {
+            const scheduleData = getScheduleData(classes, level);
+            const kepalaUnit = level === 'smp' 
+                ? document.getElementById('kepalaUnitSMP').value || '___________________________'
+                : document.getElementById('kepalaUnitSMK').value || '___________________________';
+            
+            let html = '<div class="schedule-section page-break-inside-avoid">';
+            html += `<h2 class="schedule-title">Jadwal Pelajaran ${level === 'smp' ? 'SMP' : 'SMK'} IDN Boarding School Pamijahan Bogor</h2>`;
+            html += '<table><thead><tr>';
+            html += '<th rowspan="2">Jam/Waktu</th><th rowspan="2">Ke</th>';
+            
+            days.forEach(day => {
+                html += `<th colspan="${classes.length}">${day}</th>`;
+            });
+            html += '</tr><tr>';
+            
+            days.forEach(() => {
+                classes.forEach(className => {
+                    html += `<th>${className}</th>`;
+                });
+            });
+            html += '</tr></thead><tbody>';
+
+            [1, 2, 3, 4, 5, 6, 7].forEach(jp => {
+                if (jp === 4) {
+                    html += `<tr><td colspan="${2 + (classes.length * days.length)}" class="break-row">ISTIRAHAT (09:45-10:00)</td></tr>`;
+                }
+                if (jp === 6) {
+                    html += `<tr><td colspan="${2 + (classes.length * days.length)}" class="ishoma-row">ISHOMA (11:30-13:00)</td></tr>`;
+                }
+
+                html += '<tr>';
+                html += `<td class="time-col">${timeSlots[jp]}</td>`;
+                html += `<td class="time-col">${jp}</td>`;
+
+                days.forEach((_, dayIdx) => {
+                    classes.forEach(className => {
+                        const cellData = scheduleData[className]?.[dayIdx + 1]?.[jp];
+                        const cellClass = cellData ? getCellClass(cellData.subject) : '';
+                        html += `<td class="${cellClass}">`;
+                        if (cellData) {
+                            html += `<strong>${cellData.code}</strong>`;
+                        }
+                        html += '</td>';
+                    });
+                });
+
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            html += generateLegend(level);
+            
+            // Tambahkan kolom tanda tangan
+            html += '<div class="signature-section">';
+            html += '<div class="signature-box">';
+            html += '<div class="signature-label">Kepala Unit ' + (level === 'smp' ? 'SMP' : 'SMK') + '</div>';
+            html += '<div class="signature-line">' + kepalaUnit + '</div>';
+            html += '</div>';
+            html += '</div>';
+            
+            html += '</div>';
+            return html;
+        }
+
+        function generateSchedule() {
+            if (!jsonData) return;
+
+            let html = generateScheduleTable(smpClasses, 'smp');
+            html += '<div class="page-break"></div>';
+            html += generateScheduleTable(smkClasses, 'smk');
+
+            document.getElementById('scheduleContent').innerHTML = html;
+            document.getElementById('scheduleContent').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('printBtn').style.display = 'inline-flex';
+        }
+    </script>
+</body>
+</html>

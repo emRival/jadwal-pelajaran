@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Jadwal Otomatis</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f4f4f9;
+        }
+        .controls {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .controls h1 {
+            margin: 0 0 15px 0;
+            font-size: 24px;
+            color: #333;
+        }
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        legend {
+            font-weight: bold;
+            font-size: 16px;
+            color: #007bff;
+            padding: 0 10px;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+        .control-grid label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .control-grid input[type="text"], .control-grid input[type="file"], .control-grid input[type="url"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .control-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #generate-btn { background-color: #007bff; color: white; }
+        #generate-btn:hover { background-color: #0056b3; }
+        #generate-btn:disabled { background-color: #5a9edc; cursor: not-allowed; }
+        #print-btn { background-color: #28a745; color: white; display: none; }
+        #print-btn:hover { background-color: #1e7e34; }
+        #output-container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .responsive-wrapper {
+            overflow-x: auto;
+            border: 1px solid #ddd;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .print-header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid black;
+            padding-bottom: 8px;
+        }
+        .print-header h2 { font-size: 20px; margin: 0; }
+        .print-header h3 { font-size: 14px; margin: 4px 0; font-weight: normal; }
+        .print-header p { font-size: 11px; margin: 0; color: #555; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 3px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 10px;
+            word-wrap: break-word;
+        }
+        th { background-color: #e9ecef; font-weight: bold; }
+        .header-smp { background-color: #e0e0e0 !important; }
+        .header-10 { background-color: #e7f5ff !important; }
+        .header-11 { background-color: #e6fffa !important; }
+        td strong { font-size: 11px; }
+        .time-col { width: 7%; font-weight: bold; background-color: #f8f9fa; }
+        .jp-col { width: 3%; }
+        .break-row, .ishoma-row { font-weight: 600; height: 30px; }
+        .break-row { background-color: #f0fdf4 !important; color: #15803d !important; }
+        .ishoma-row { background-color: #fef9c3 !important; }
+        
+        .legend-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 15px;
+            page-break-inside: avoid;
+        }
+        .legend-subject-group { padding-right: 15px; }
+        .legend-subject-group h4 { font-size: 12px; font-weight: bold; margin: 0 0 6px 0; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        .legend-subject-group p { font-size: 11px; margin: 0 0 5px 0; display: flex; align-items: center; white-space: nowrap; }
+        .color-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #333;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .page-break-note {
+            text-align: center;
+            padding: 20px;
+            border-top: 2px dashed #ccc;
+            border-bottom: 2px dashed #ccc;
+            margin: 40px 0;
+            color: #555;
+            font-style: italic;
+        }
+
+        .mapel-it { background-color: #D2B48C !important; }
+        .mapel-diniyah { background-color: #90EE90 !important; }
+        .mapel-english { background-color: #ADD8E6 !important; }
+        .mapel-bk { background-color: #FFFFFF !important; }
+
+        @media print {
+            body { margin: 0; padding: 0; font-size: 9px; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .controls, .page-break-note { display: none !important; }
+            #output-container { box-shadow: none; padding: 0; }
+            .responsive-wrapper { overflow: visible; border: none; }
+            @page {
+                size: A4 landscape;
+                margin: 0.7cm;
+            }
+            .page-container { page-break-inside: avoid !important; }
+            .print-header h2 { font-size: 16px; }
+            .print-header h3 { font-size: 12px; }
+            .print-header p { font-size: 9px; }
+            table { margin-bottom: 8px; font-size: 7.5px; }
+            td strong { font-size: 8px; }
+            th, td { padding: 1.5px; height: 25px; }
+            .time-col { width: 5.5%; }
+            .jp-col { width: 2%; }
+            .legend-container { gap: 20px; margin-top: 8px; }
+            .legend-subject-group h4 { font-size: 9px; }
+            .legend-subject-group p { font-size: 8.5px; }
+            .color-box { width: 8px; height: 8px; }
+            .signature-area { display: flex !important; justify-content: space-around; margin-top: 25px; width: 100%; }
+            .signature-block { text-align: center; font-size: 10px; width: 200px; }
+            .signature-block img { max-height: 45px; margin-bottom: 5px; }
+            .signature-block .name { font-weight: bold; border-top: 1px solid #333; padding-top: 3px; }
+            .page-break { page-break-before: always; }
+        }
+        .signature-area { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h1>Generator Jadwal Otomatis</h1>
+        <fieldset>
+            <legend>Pengaturan Dasar</legend>
+            <div class="control-grid">
+                <label for="smp-title">Judul Jadwal SMP:</label>
+                <input type="text" id="smp-title" value="Jadwal Pelajaran SMP">
+                
+                <label for="smk-title">Judul Jadwal SMK:</label>
+                <input type="text" id="smk-title" value="Jadwal Pelajaran SMK">
+
+                <label for="school-name">Nama Sekolah:</label>
+                <input type="text" id="school-name" value="IDN Boarding School Pamijahan">
+
+                <label for="json-file-input" class="full-width">Pilih File Jadwal (.json):</label>
+                <input type="file" id="json-file-input" accept=".json" class="full-width">
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Pengaturan Tanda Tangan (Opsional)</legend>
+            <div class="control-grid">
+                 <label for="head-name">Nama Kepala Unit:</label>
+                 <input type="text" id="head-name" placeholder="Contoh: Muhammad Ifam Adrian, B.A (Hons)">
+
+                 <label for="head-sig-url">URL Gambar TTD Kepala Unit:</label>
+                 <input type="url" id="head-sig-url" placeholder="https://i.postimg.cc/contoh-ttd.png">
+
+                 <label for="vice-name">Nama Wakil Kepala (Kurikulum):</label>
+                 <input type="text" id="vice-name" placeholder="Contoh: Muhammad Rival, S.Kom">
+                 
+                 <label for="vice-sig-url">URL Gambar TTD Wakil Kepala:</label>
+                 <input type="url" id="vice-sig-url" placeholder="https://i.postimg.cc/contoh-ttd.png">
+            </div>
+        </fieldset>
+
+        <div class="button-group">
+            <button id="generate-btn">Buat Jadwal</button>
+            <button id="print-btn">Cetak Jadwal</button>
+        </div>
+    </div>
+
+    <div id="output-container">
+        <p style="text-align: center; color: #777;">Silakan pilih file JSON jadwal Anda dan klik "Buat Jadwal".</p>
+    </div>
+
+    <script>
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            const fileInput = document.getElementById('json-file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Silakan pilih file JSON terlebih dahulu.');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Membuat...';
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const scheduleData = JSON.parse(event.target.result);
+                    renderAllSchedules(scheduleData);
+                    document.getElementById('print-btn').style.display = 'inline-block';
+                } catch (e) {
+                    alert('Error: File JSON tidak valid.\n' + e.message);
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Buat Jadwal';
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('print-btn').addEventListener('click', () => {
+            window.print();
+        });
+        
+        function getSubjectCategory(mapelName) {
+            const lowerMapel = (mapelName || '').toLowerCase();
+            if (lowerMapel.includes('it')) return 'IT';
+            if (lowerMapel.includes('diniyah')) return 'Diniyah';
+            if (lowerMapel.includes('english')) return 'English';
+            if (lowerMapel.includes('bk')) return 'BK';
+            return 'Lainnya';
+        }
+
+        function generateCodeMaps(scheduleData) {
+            const smpTeachers = { IT: new Set(), Diniyah: new Set(), English: new Set(), BK: new Set() };
+            const smkTeachers = { IT: new Set(), Diniyah: new Set(), English: new Set(), BK: new Set() };
+
+            for (const schedule of scheduleData) {
+                if (!schedule.classes || schedule.classes.length === 0 || !schedule.guru) continue;
+                const className = schedule.classes[0];
+                const grade = parseInt(className.match(/^\d+/));
+                const category = getSubjectCategory(schedule.mapel);
+                if (category === 'Lainnya') continue;
+
+                if (grade >= 7 && grade <= 9) smpTeachers[category].add(schedule.guru);
+                else if (grade >= 10 && grade <= 12) smkTeachers[category].add(schedule.guru);
+            }
+
+            const createMap = (teacherSet) => {
+                const codeMap = new Map();
+                for (const category in teacherSet) {
+                    const sortedTeachers = Array.from(teacherSet[category]).sort();
+                    let count = 1;
+                    for (const teacher of sortedTeachers) {
+                        let prefix = (category === 'Diniyah') ? 'DN' : (category === 'English') ? 'EN' : category;
+                        codeMap.set(teacher, { code: `${prefix}-${count}`, category });
+                        count++;
+                    }
+                }
+                return codeMap;
+            };
+
+            return { smpCodeMap: createMap(smpTeachers), smkCodeMap: createMap(smkTeachers) };
+        }
+
+        function generateTableHtml(level, scheduleData, codeMap) {
+            const smpClasses = ["7", "8A", "8B", "9"];
+            const smkClasses = ["10 RPL", "10 DKV", "10 TKJ", "11 RPL", "11 DKV", "11 TKJ"];
+            const classColumns = level === 'SMP' ? smpClasses : smkClasses;
+            const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+            const timeSlots = [
+                { time: "07:30-08:15", jp: "1" }, { time: "08:15-09:00", jp: "2" }, { time: "09:00-09:45", jp: "3" },
+                { type: 'break', text: 'ISTIRAHAT (09:45-10:00)' },
+                { time: "10:00-10:45", jp: "4" }, { time: "10:45-11:30", jp: "5" },
+                { type: 'break', text: 'ISHOMA (11:30-13:00)' },
+                { time: "13:00-13:45", jp: "6" }, { time: "13:45-14:30", jp: "7" }
+            ];
+
+            const headerClassesHtml = classColumns.map(cls => {
+                const grade = parseInt(cls.match(/^\d+/));
+                let headerClass = '';
+                if (level === 'SMK') {
+                    headerClass = grade === 10 ? 'header-10' : 'header-11';
+                } else {
+                    headerClass = 'header-smp';
+                }
+                return `<th class="${headerClass}">${cls}</th>`;
+            }).join('');
+
+            let headerHtml = `
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="time-col">Jam/Waktu</th><th rowspan="2" class="jp-col">Ke</th>
+                        ${days.map(day => `<th colspan="${classColumns.length}">${day}</th>`).join('')}
+                    </tr>
+                    <tr>
+                        ${days.map(() => headerClassesHtml).join('')}
+                    </tr>
+                </thead>`;
+
+            let bodyHtml = '<tbody>';
+            for (const slot of timeSlots) {
+                if (slot.type === 'break') {
+                    const className = slot.text.includes('ISHOMA') ? 'ishoma-row' : 'break-row';
+                    bodyHtml += `<tr><td colspan="${2 + (classColumns.length * 5)}" class="${className}">${slot.text}</td></tr>`;
+                    continue;
+                }
+                
+                bodyHtml += `<tr><td class="time-col">${slot.time}</td><td class="time-col jp-col">${slot.jp}</td>`;
+                for (let dayIndex = 1; dayIndex <= 5; dayIndex++) {
+                    for (const className of classColumns) {
+                        const schedule = scheduleData.find(s => s.day == dayIndex && s.jp == slot.jp && s.classes[0] === className);
+                        if (schedule && schedule.guru) {
+                            const details = codeMap.get(schedule.guru);
+                            const category = details ? details.category.toLowerCase() : 'lainnya';
+                            const code = details ? details.code : 'N/A';
+                            bodyHtml += `<td class="mapel-${category}"><strong>${code}</strong></td>`;
+                        } else {
+                            bodyHtml += `<td>-</td>`;
+                        }
+                    }
+                }
+                bodyHtml += `</tr>`;
+            }
+            bodyHtml += '</tbody>';
+
+            return `<div class="responsive-wrapper"><table>${headerHtml}${bodyHtml}</table></div>`;
+        }
+        
+        function generateLegendHtml(codeMap, level) {
+            let legendItems = { IT: [], Diniyah: [], English: [], BK: [] };
+            for (const [teacher, details] of codeMap.entries()) {
+                if(legendItems[details.category]) {
+                    legendItems[details.category].push({ code: details.code, teacher: teacher });
+                }
+            }
+            
+            let legendHtml = `<div class="legend-container">`;
+            const categories = ['IT', 'Diniyah', 'English', 'BK'];
+            for(const category of categories) {
+                if(legendItems[category].length > 0) {
+                    legendHtml += `<div class="legend-subject-group"><h4>${category}</h4>`;
+                    legendItems[category].sort((a,b) => parseInt(a.code.split('-')[1]) - parseInt(b.code.split('-')[1]));
+                    for(const item of legendItems[category]) {
+                        legendHtml += `<p><span class="color-box mapel-${category.toLowerCase()}"></span><strong>${item.code}:</strong> ${item.teacher}</p>`;
+                    }
+                    legendHtml += `</div>`;
+                }
+            }
+            legendHtml += '</div>';
+            return `<div class="legend">${legendHtml}</div>`;
+        }
+
+        function generateHeaderHtml(title, schoolName) {
+            const date = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            return `<div class="print-header"><h2>${title}</h2><h3>${schoolName}</h3><p>Dicetak pada: ${date}</p></div>`;
+        }
+
+        function generateSignatureHtml() {
+            const headName = document.getElementById('head-name').value;
+            const headSigUrl = document.getElementById('head-sig-url').value;
+            const viceName = document.getElementById('vice-name').value;
+            const viceSigUrl = document.getElementById('vice-sig-url').value;
+
+            if (!headName && !viceName) return '';
+
+            return `
+                <div class="signature-area">
+                    <div class="signature-block">
+                        <p>Kepala Unit</p>
+                        ${headSigUrl ? `<img src="${headSigUrl}" alt="TTD Kepala Unit">` : '<div style="height: 45px;"></div>'}
+                        <p class="name">${headName || '____________________'}</p>
+                    </div>
+                    <div class="signature-block">
+                        <p>Wakil Kepala (Kurikulum)</p>
+                        ${viceSigUrl ? `<img src="${viceSigUrl}" alt="TTD Wakil Kepala">` : '<div style="height: 45px;"></div>'}
+                        <p class="name">${viceName || '____________________'}</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderAllSchedules(scheduleData) {
+            const outputContainer = document.getElementById('output-container');
+            const smpTitle = document.getElementById('smp-title').value || "Jadwal Pelajaran SMP";
+            const smkTitle = document.getElementById('smk-title').value || "Jadwal Pelajaran SMK";
+            const schoolName = document.getElementById('school-name').value || "Nama Sekolah";
+            
+            const { smpCodeMap, smkCodeMap } = generateCodeMaps(scheduleData);
+
+            const smpHeaderHtml = generateHeaderHtml(smpTitle, schoolName);
+            const smpTableHtml = generateTableHtml('SMP', scheduleData, smpCodeMap);
+            const smpLegendHtml = generateLegendHtml(smpCodeMap, 'SMP');
+            
+            const smkHeaderHtml = generateHeaderHtml(smkTitle, schoolName);
+            const smkTableHtml = generateTableHtml('SMK', scheduleData, smkCodeMap);
+            const smkLegendHtml = generateLegendHtml(smkCodeMap, 'SMK');
+
+            const signatureHtml = generateSignatureHtml();
+
+            outputContainer.innerHTML = `
+                <div class="page-container">
+                    ${smpHeaderHtml}
+                    ${smpTableHtml}
+                    ${smpLegendHtml}
+                    ${signatureHtml}
+                </div>
+                <div class="page-break-note">
+                    <p>Pemisahan halaman SMP dan SMK akan terlihat saat mencetak atau dalam mode Print Preview.</p>
+                </div>
+                <div class="page-break"></div>
+                <div class="page-container">
+                    ${smkHeaderHtml}
+                    ${smkTableHtml}
+                    ${smkLegendHtml}
+                    ${signatureHtml}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
